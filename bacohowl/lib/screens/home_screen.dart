@@ -11,6 +11,7 @@ import 'dart:math';
 import 'dart:typed_data';
 import '../widgets/background_picker.dart';
 import '../widgets/settings_menu.dart';
+import '../utils/responsive_layout.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -167,10 +168,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   }
 
   Widget _buildPlaylistView() {
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
       width: double.infinity,
-      height: 200,
-      margin: const EdgeInsets.symmetric(vertical: 10),
+      height: showPlaylist ? 200 : 0,
+      margin: EdgeInsets.only(
+        top: showPlaylist ? 10 : 0,
+        bottom: showPlaylist ? 10 : 0,
+      ),
       decoration: BoxDecoration(
         color: AppTheme.backgroundColor,
         borderRadius: BorderRadius.circular(15),
@@ -178,57 +183,62 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           color: AppTheme.primaryColor.withOpacity(0.3),
         ),
       ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: AppTheme.primaryColor.withOpacity(0.1),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Playlist',
-                  style: AppTheme.bodyStyle.copyWith(fontWeight: FontWeight.bold),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.add),
-                  onPressed: pickAndPlayAudio,
-                  color: AppTheme.accentColor,
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: playlist.length,
-              itemBuilder: (context, index) {
-                final song = playlist[index];
-                return ListTile(
-                  leading: Icon(
-                    Icons.music_note,
-                    color: currentIndex == index ? AppTheme.primaryColor : AppTheme.textColor.withOpacity(0.5),
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            if (showPlaylist) Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withOpacity(0.1),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Playlist',
+                    style: AppTheme.bodyStyle.copyWith(fontWeight: FontWeight.bold),
                   ),
-                  title: Text(
-                    song.name,
-                    style: AppTheme.bodyStyle.copyWith(
-                      color: currentIndex == index ? AppTheme.primaryColor : AppTheme.textColor,
-                      fontWeight: currentIndex == index ? FontWeight.bold : FontWeight.normal,
+                  IconButton(
+                    icon: const Icon(Icons.add),
+                    onPressed: pickAndPlayAudio,
+                    color: AppTheme.accentColor,
+                  ),
+                ],
+              ),
+            ),
+            if (showPlaylist) SizedBox(
+              height: 152, // 200 - header height
+              child: ListView.builder(
+                itemCount: playlist.length,
+                itemBuilder: (context, index) {
+                  final song = playlist[index];
+                  return ListTile(
+                    dense: true,
+                    leading: Icon(
+                      Icons.music_note,
+                      color: currentIndex == index ? AppTheme.primaryColor : AppTheme.textColor.withOpacity(0.5),
                     ),
-                  ),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.remove_circle_outline),
-                    onPressed: () => _removeFromPlaylist(index),
-                    color: AppTheme.textColor.withOpacity(0.5),
-                  ),
-                  onTap: () => _playFromPlaylist(index),
-                );
-              },
+                    title: Text(
+                      song.name,
+                      style: AppTheme.bodyStyle.copyWith(
+                        color: currentIndex == index ? AppTheme.primaryColor : AppTheme.textColor,
+                        fontWeight: currentIndex == index ? FontWeight.bold : FontWeight.normal,
+                        fontSize: 14,
+                      ),
+                    ),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.remove_circle_outline),
+                      onPressed: () => _removeFromPlaylist(index),
+                      color: AppTheme.textColor.withOpacity(0.5),
+                    ),
+                    onTap: () => _playFromPlaylist(index),
+                  );
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -269,17 +279,128 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     setState(() => autoPlay = value);
   }
 
+  ImageProvider _getBackgroundImage() {
+    if (currentBackground.startsWith('assets/')) {
+      return AssetImage(currentBackground);
+    } else if (currentBackground.startsWith('data:')) {
+      // Handle web data URLs
+      return NetworkImage(currentBackground);
+    } else if (kIsWeb) {
+      // Handle other web URLs
+      return NetworkImage(currentBackground);
+    } else {
+      // Handle local file paths for desktop/mobile
+      return FileImage(File(currentBackground));
+    }
+  }
+
+  Widget _buildControls(bool isMobile) {
+    return Wrap(
+      spacing: isMobile ? 5 : 10,
+      runSpacing: isMobile ? 5 : 10,
+      alignment: WrapAlignment.center,
+      children: [
+        SizedBox(
+          height: 32,
+          child: TextButton.icon(
+            onPressed: () => setState(() => showPlaylist = !showPlaylist),
+            icon: Icon(
+              showPlaylist ? Icons.playlist_remove : Icons.queue_music,
+              color: AppTheme.accentColor,
+              size: isMobile ? 18 : 24,
+            ),
+            label: Text(
+              showPlaylist ? 'Hide' : 'Show',
+              style: AppTheme.bodyStyle.copyWith(
+                color: AppTheme.accentColor,
+                fontWeight: FontWeight.bold,
+                fontSize: isMobile ? 11 : 14,
+              ),
+            ),
+            style: TextButton.styleFrom(
+              backgroundColor: AppTheme.accentColor.withOpacity(0.1),
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile ? 6 : 12,
+                vertical: isMobile ? 4 : 8,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+            ),
+          ),
+        ),
+        SizedBox(
+          height: 32,
+          child: TextButton.icon(
+            onPressed: pickAndPlayAudio,
+            icon: Icon(
+              Icons.add,
+              size: isMobile ? 18 : 24,
+            ),
+            label: Text(
+              'Add',
+              style: AppTheme.bodyStyle.copyWith(
+                fontSize: isMobile ? 11 : 14,
+              ),
+            ),
+            style: TextButton.styleFrom(
+              backgroundColor: AppTheme.accentColor.withOpacity(0.1),
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile ? 6 : 12,
+                vertical: isMobile ? 4 : 8,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+            ),
+          ),
+        ),
+        SizedBox(
+          height: 32,
+          child: TextButton.icon(
+            onPressed: () => setState(() => showSettings = !showSettings),
+            icon: Icon(
+              Icons.settings,
+              color: AppTheme.secondaryColor,
+              size: isMobile ? 18 : 24,
+            ),
+            label: Text(
+              'Settings',
+              style: AppTheme.bodyStyle.copyWith(
+                color: AppTheme.secondaryColor,
+                fontWeight: FontWeight.bold,
+                fontSize: isMobile ? 11 : 14,
+              ),
+            ),
+            style: TextButton.styleFrom(
+              backgroundColor: AppTheme.secondaryColor.withOpacity(0.1),
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile ? 6 : 12,
+                vertical: isMobile ? 4 : 8,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isWidget = ResponsiveLayout.isWidget(context);
+    final isMobile = ResponsiveLayout.isMobile(context);
+    final playerWidth = ResponsiveLayout.getPlayerWidth(context);
+    final playerPadding = ResponsiveLayout.getPlayerPadding(context);
+    final playerRadius = ResponsiveLayout.getPlayerRadius(context);
+
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: currentBackground.startsWith('assets/') 
-              ? AssetImage(currentBackground) as ImageProvider
-              : kIsWeb 
-                ? NetworkImage(currentBackground) as ImageProvider
-                : FileImage(File(currentBackground)),
+            image: _getBackgroundImage(),
             fit: BoxFit.cover,
             opacity: 0.8,
           ),
@@ -299,17 +420,17 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 onDroppedFile: (file) async => await playAudio(file),
                 child: Center(
                   child: Container(
-                    constraints: const BoxConstraints(maxWidth: 400),
-                    margin: const EdgeInsets.all(20),
-                    padding: const EdgeInsets.all(24),
+                    constraints: BoxConstraints(maxWidth: playerWidth),
+                    margin: const EdgeInsets.all(10),
+                    padding: playerPadding,
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.9),
-                      borderRadius: BorderRadius.circular(30),
+                      borderRadius: BorderRadius.circular(playerRadius),
                       boxShadow: [
                         BoxShadow(
                           color: AppTheme.primaryColor.withOpacity(0.3),
-                          blurRadius: 20,
-                          spreadRadius: 5,
+                          blurRadius: isWidget ? 10 : 20,
+                          spreadRadius: isWidget ? 2 : 5,
                         ),
                       ],
                     ),
@@ -317,13 +438,13 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 10,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: isWidget ? 12 : 20,
+                            vertical: isWidget ? 8 : 10,
                           ),
                           decoration: BoxDecoration(
                             color: AppTheme.backgroundColor,
-                            borderRadius: BorderRadius.circular(20),
+                            borderRadius: BorderRadius.circular(isWidget ? 15 : 20),
                             border: Border.all(
                               color: AppTheme.primaryColor.withOpacity(0.3),
                               width: 2,
@@ -331,13 +452,15 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                           ),
                           child: Text(
                             currentSong ?? 'Select songs to play',
-                            style: AppTheme.titleStyle.copyWith(fontSize: 24),
+                            style: AppTheme.titleStyle.copyWith(
+                              fontSize: ResponsiveLayout.getFontSize(context, 24),
+                            ),
                             textAlign: TextAlign.center,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        const SizedBox(height: 20),
-                        if (showPlaylist) _buildPlaylistView(),
+                        const SizedBox(height: 10),
+                        _buildPlaylistView(), // Always include playlist view
                         const SizedBox(height: 10),
                         PlayerControls(
                           audioPlayer: _audioPlayer,
@@ -348,80 +471,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                           onForward: handleForward,
                           onBackward: handleBackward,
                         ),
-                        const SizedBox(height: 20),
-                        Wrap(
-                          spacing: 10,
-                          runSpacing: 10,
-                          alignment: WrapAlignment.center,
-                          children: [
-                            TextButton.icon(
-                              onPressed: () => setState(() => showPlaylist = !showPlaylist),
-                              icon: Icon(
-                                showPlaylist ? Icons.playlist_remove : Icons.queue_music,
-                                color: AppTheme.accentColor,
-                              ),
-                              label: Text(
-                                showPlaylist ? 'Hide' : 'Show',
-                                style: AppTheme.bodyStyle.copyWith(
-                                  color: AppTheme.accentColor,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              style: TextButton.styleFrom(
-                                backgroundColor: AppTheme.accentColor.withOpacity(0.1),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 8,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(15),
-                                ),
-                              ),
-                            ),
-                            TextButton.icon(
-                              onPressed: pickAndPlayAudio,
-                              icon: const Icon(Icons.add),
-                              label: const Text('Add'),
-                              style: TextButton.styleFrom(
-                                backgroundColor: AppTheme.accentColor.withOpacity(0.1),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 8,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(15),
-                                  side: BorderSide(
-                                    color: AppTheme.accentColor.withOpacity(0.5),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            TextButton.icon(
-                              onPressed: () => setState(() => showSettings = !showSettings),
-                              icon: Icon(
-                                Icons.settings,
-                                color: AppTheme.secondaryColor,
-                              ),
-                              label: Text(
-                                'Settings',
-                                style: AppTheme.bodyStyle.copyWith(
-                                  color: AppTheme.secondaryColor,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              style: TextButton.styleFrom(
-                                backgroundColor: AppTheme.secondaryColor.withOpacity(0.1),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 8,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(15),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                        const SizedBox(height: 15),
+                        _buildControls(isMobile),
+                        const SizedBox(height: 10),
                       ],
                     ),
                   ),
@@ -429,8 +481,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               ),
               if (showSettings)
                 Positioned(
-                  top: 100,
-                  right: 20,
+                  top: isMobile ? 60 : 100,
+                  right: isMobile ? 10 : 20,
                   child: SettingsMenu(
                     currentBackground: currentBackground,
                     onBackgroundChanged: _handleBackgroundChange,

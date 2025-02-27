@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import '../constants/theme.dart';
 import '../constants/assets.dart';
+import '../utils/responsive_layout.dart';
 
 class PlayerControls extends StatelessWidget {
   final AudioPlayer audioPlayer;
@@ -25,11 +26,21 @@ class PlayerControls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = ResponsiveLayout.isMobile(context);
+    final isWidget = ResponsiveLayout.isWidget(context);
+    final buttonSpacing = isWidget ? 12.0 : 24.0;
+    final controlsMargin = isWidget ? 10.0 : 20.0;
+    final sliderPadding = isWidget ? 10.0 : 15.0;
+
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          margin: const EdgeInsets.symmetric(horizontal: 20),
-          padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 5),
+          margin: EdgeInsets.symmetric(horizontal: controlsMargin),
+          padding: EdgeInsets.symmetric(
+            vertical: sliderPadding,
+            horizontal: 5,
+          ),
           decoration: BoxDecoration(
             color: AppTheme.backgroundColor,
             borderRadius: BorderRadius.circular(20),
@@ -39,6 +50,7 @@ class PlayerControls extends StatelessWidget {
             ),
           ),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
               SliderTheme(
                 data: SliderThemeData(
@@ -46,9 +58,13 @@ class PlayerControls extends StatelessWidget {
                   activeTrackColor: AppTheme.secondaryColor,
                   inactiveTrackColor: Colors.white,
                   overlayColor: AppTheme.primaryColor.withOpacity(0.2),
-                  thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
-                  overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
-                  trackHeight: 4,
+                  thumbShape: RoundSliderThumbShape(
+                    enabledThumbRadius: isWidget ? 6 : 8,
+                  ),
+                  overlayShape: RoundSliderOverlayShape(
+                    overlayRadius: isWidget ? 12 : 16,
+                  ),
+                  trackHeight: isWidget ? 3 : 4,
                 ),
                 child: Slider(
                   value: position.inSeconds.toDouble(),
@@ -59,62 +75,76 @@ class PlayerControls extends StatelessWidget {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: EdgeInsets.symmetric(
+                  horizontal: isWidget ? 10 : 20,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(_formatDuration(position)),
-                    Text(_formatDuration(duration)),
+                    Text(
+                      _formatDuration(position),
+                      style: TextStyle(fontSize: isWidget ? 10 : 12),
+                    ),
+                    Text(
+                      _formatDuration(duration),
+                      style: TextStyle(fontSize: isWidget ? 10 : 12),
+                    ),
                   ],
                 ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 20),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            IconButton(
-              iconSize: 32,
-              onPressed: onBackward,
-              icon: Icon(
-                Icons.skip_previous_rounded,
-                color: AppTheme.secondaryColor,
+        SizedBox(height: isWidget ? 10 : 20),
+        SizedBox(
+          height: isWidget ? 48 : 56,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                iconSize: isWidget ? 24 : 32,
+                padding: EdgeInsets.zero,
+                onPressed: onBackward,
+                icon: Icon(
+                  Icons.skip_previous_rounded,
+                  color: AppTheme.secondaryColor,
+                ),
               ),
-            ),
-            const SizedBox(width: 24),
-            Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppTheme.primaryColor.withOpacity(0.1),
-              ),
-              child: Material(
-                type: MaterialType.transparency,
-                child: InkWell(
-                  onTap: onPlayPause,
-                  customBorder: const CircleBorder(),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Image.asset(
-                      isPlaying ? AppAssets.pauseButton : AppAssets.playButton,
-                      width: 48,
-                      height: 48,
+              SizedBox(width: buttonSpacing),
+              Container(
+                height: isWidget ? 40 : 48,
+                width: isWidget ? 40 : 48,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppTheme.primaryColor.withOpacity(0.1),
+                ),
+                child: Material(
+                  type: MaterialType.transparency,
+                  child: InkWell(
+                    onTap: onPlayPause,
+                    customBorder: const CircleBorder(),
+                    child: Padding(
+                      padding: EdgeInsets.all(isWidget ? 8 : 12),
+                      child: Image.asset(
+                        isPlaying ? AppAssets.pauseButton : AppAssets.playButton,
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(width: 24),
-            IconButton(
-              iconSize: 32,
-              onPressed: onForward,
-              icon: Icon(
-                Icons.skip_next_rounded,
-                color: AppTheme.secondaryColor,
+              SizedBox(width: buttonSpacing),
+              IconButton(
+                iconSize: isWidget ? 24 : 32,
+                padding: EdgeInsets.zero,
+                onPressed: onForward,
+                icon: Icon(
+                  Icons.skip_next_rounded,
+                  color: AppTheme.secondaryColor,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ],
     );

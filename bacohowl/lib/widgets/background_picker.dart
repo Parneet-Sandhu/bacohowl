@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import '../constants/theme.dart';
 import '../constants/assets.dart';
+import 'package:flutter/foundation.dart';
 
 class BackgroundPicker extends StatefulWidget {
   final String currentBackground;
@@ -126,10 +127,26 @@ class _BackgroundPickerState extends State<BackgroundPicker> {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.image,
         allowMultiple: false,
+        withData: true, // Enable bytes for web
       );
 
       if (result != null && result.files.isNotEmpty) {
-        widget.onCustomBackgroundPicked(result.files.first.path!);
+        final file = result.files.first;
+        if (kIsWeb) {
+          if (file.bytes != null) {
+            // For web, create a data URL from bytes
+            final url = Uri.dataFromBytes(
+              file.bytes!,
+              mimeType: 'image/${file.extension?.toLowerCase() ?? 'png'}',
+            ).toString();
+            widget.onCustomBackgroundPicked(url);
+          }
+        } else {
+          // For desktop/mobile
+          if (file.path != null) {
+            widget.onCustomBackgroundPicked(file.path!);
+          }
+        }
       }
     } catch (e) {
       debugPrint('Error picking background: $e');

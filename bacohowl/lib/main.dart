@@ -13,6 +13,8 @@ void main() async {
     WindowOptions windowOptions = const WindowOptions(
       size: Size(300, 400),
       minimumSize: Size(250, 350),
+      maximumSize: Size(800, 1000), // Add maximum size
+      title: 'BacoHowl',
     );
     await windowManager.waitUntilReadyToShow(windowOptions, () async {
       await windowManager.show();
