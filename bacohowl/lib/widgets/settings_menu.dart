@@ -21,7 +21,7 @@ class SettingsMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 300,
+      width: double.infinity, // Changed from fixed 300 to match parent width
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,

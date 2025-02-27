@@ -488,26 +488,27 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           child: SafeArea(
             child: DropZone(
               onDroppedFile: (file) async => await playAudio(file),
-              child: Stack(
+              child: Column(
                 children: [
                   // Main Scrollable Content
-                  Positioned.fill(
-                    bottom: 80, // Reserve space for bottom box
+                  Expanded(
                     child: SingleChildScrollView(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: isMobile ? 10 : 20,
-                        vertical: isMobile ? 5 : 10,
+                      padding: EdgeInsets.only(
+                        left: isMobile ? 10 : 20,
+                        right: isMobile ? 10 : 20,
+                        top: isMobile ? 5 : 10,
+                        bottom: 100, // Add padding for bottom info box
                       ),
                       child: Column(
                         children: [
-                          // Stories Box (Moved to top)
+                          // Stories Box
                           Container(
                             constraints: BoxConstraints(maxWidth: playerWidth),
                             margin: EdgeInsets.only(bottom: isMobile ? 15 : 25),
                             child: _buildStoriesBox(isMobile, playerWidth),
                           ),
 
-                          // Player Container
+                          // Player Container and Settings
                           Container(
                             constraints: BoxConstraints(maxWidth: playerWidth),
                             margin: EdgeInsets.only(bottom: isMobile ? 10 : 20),
@@ -597,6 +598,19 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                   ),
                                 ),
                                 
+                                // Settings Menu - Moved here
+                                if (showSettings)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 16),
+                                    child: SettingsMenu(
+                                      currentBackground: currentBackground,
+                                      onBackgroundChanged: _handleBackgroundChange,
+                                      onCustomBackgroundPicked: _handleCustomBackground,
+                                      autoPlay: autoPlay,
+                                      onAutoPlayChanged: _handleAutoPlayChanged,
+                                    ),
+                                  ),
+                                
                                 // Playlist when shown
                                 if (showPlaylist) 
                                   Padding(
@@ -606,51 +620,25 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                               ],
                             ),
                           ),
-
-                          // Extra space at bottom
-                          SizedBox(height: isMobile ? 20 : 30),
                         ],
                       ),
                     ),
                   ),
 
-                  // Fixed Bottom Info Box (Updated)
-                  Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: isMobile ? 10 : 20,
-                        vertical: isMobile ? 8 : 12,
-                      ),
-                      child: Center(
-                        child: BottomInfoBox(
-                          width: playerWidth,
-                          opacity: 0.95,
-                          elevation: isWidget ? 15 : 30,
-                        ),
+                  // Fixed Bottom Info Box
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isMobile ? 10 : 20,
+                      vertical: isMobile ? 8 : 12,
+                    ),
+                    child: Center(
+                      child: BottomInfoBox(
+                        width: playerWidth,
+                        opacity: 0.95,
+                        elevation: isWidget ? 15 : 30,
                       ),
                     ),
                   ),
-
-                  // Settings Menu Overlay (unchanged)
-                  if (showSettings)
-                    Positioned(
-                      top: isMobile ? 60 : 100,
-                      right: isMobile ? 10 : 20,
-                      child: AnimatedOpacity(
-                        duration: const Duration(milliseconds: 200),
-                        opacity: showSettings ? 1.0 : 0.0,
-                        child: SettingsMenu(
-                          currentBackground: currentBackground,
-                          onBackgroundChanged: _handleBackgroundChange,
-                          onCustomBackgroundPicked: _handleCustomBackground,
-                          autoPlay: autoPlay,
-                          onAutoPlayChanged: _handleAutoPlayChanged,
-                        ),
-                      ),
-                    ),
                 ],
               ),
             ),
