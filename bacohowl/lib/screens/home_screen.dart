@@ -514,53 +514,73 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                // Main Player
+                                // Main Player Container (Updated)
                                 Container(
                                   padding: ResponsiveLayout.getPlayerPadding(context),
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.95),
+                                    color: Colors.white.withOpacity(0.97),
                                     borderRadius: BorderRadius.circular(ResponsiveLayout.getPlayerRadius(context)),
+                                    border: Border.all(
+                                      color: AppTheme.primaryColor.withOpacity(0.2),
+                                      width: 1.5,
+                                    ),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: AppTheme.primaryColor.withOpacity(0.3),
-                                        blurRadius: isWidget ? 15 : 30,
-                                        spreadRadius: isWidget ? 2 : 5,
+                                        color: const Color(0xFFB5838D).withOpacity(0.15),
+                                        blurRadius: 25,
+                                        spreadRadius: 2,
                                       ),
                                       BoxShadow(
-                                        color: AppTheme.secondaryColor.withOpacity(0.2),
-                                        blurRadius: isWidget ? 10 : 20,
-                                        spreadRadius: isWidget ? 1 : 3,
-                                        offset: const Offset(0, 5),
+                                        color: AppTheme.accentColor.withOpacity(0.1),
+                                        blurRadius: 20,
+                                        spreadRadius: 1,
+                                        offset: const Offset(0, 8),
                                       ),
                                     ],
                                   ),
                                   child: Column(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      // Song Title
+                                      // Song Title Container (Updated)
                                       Container(
                                         padding: EdgeInsets.symmetric(
                                           horizontal: isWidget ? 12 : 20,
-                                          vertical: isWidget ? 8 : 10,
+                                          vertical: isWidget ? 12 : 16,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: AppTheme.backgroundColor,
+                                          gradient: LinearGradient(
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                            colors: [
+                                              AppTheme.backgroundColor,
+                                              Colors.white.withOpacity(0.95),
+                                            ],
+                                          ),
                                           borderRadius: BorderRadius.circular(isWidget ? 15 : 20),
                                           border: Border.all(
-                                            color: AppTheme.primaryColor.withOpacity(0.3),
-                                            width: 2,
+                                            color: AppTheme.primaryColor.withOpacity(0.15),
+                                            width: 1.5,
                                           ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: AppTheme.primaryColor.withOpacity(0.1),
+                                              blurRadius: 10,
+                                              spreadRadius: 1,
+                                              offset: const Offset(0, 2),
+                                            ),
+                                          ],
                                         ),
                                         child: Text(
                                           currentSong ?? 'Select songs to play',
                                           style: AppTheme.titleStyle.copyWith(
                                             fontSize: ResponsiveLayout.getFontSize(context, 24),
+                                            color: AppTheme.textColor.withOpacity(0.8),
                                           ),
                                           textAlign: TextAlign.center,
                                           overflow: TextOverflow.ellipsis,
                                         ),
                                       ),
-                                      const SizedBox(height: 20),
+                                      const SizedBox(height: 25),
                                       PlayerControls(
                                         audioPlayer: _audioPlayer,
                                         isPlaying: isPlaying,
@@ -569,6 +589,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                         onPlayPause: handlePlayPause,
                                         onForward: handleForward,
                                         onBackward: handleBackward,
+                                        currentSong: currentSong, // Add this
                                       ),
                                       const SizedBox(height: 20),
                                       _buildControls(isMobile),

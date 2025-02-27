@@ -12,6 +12,7 @@ class PlayerControls extends StatelessWidget {
   final VoidCallback onPlayPause;
   final VoidCallback onForward;
   final VoidCallback onBackward;
+  final String? currentSong;
 
   const PlayerControls({
     super.key,
@@ -22,185 +23,199 @@ class PlayerControls extends StatelessWidget {
     required this.onPlayPause,
     required this.onForward,
     required this.onBackward,
+    this.currentSong,
   });
+
+  Widget buildControlButton({
+    required IconData icon,
+    required VoidCallback onTap,
+    required double size,
+  }) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: InkWell(
+        onTap: onTap,
+        customBorder: const CircleBorder(),
+        child: Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppTheme.backgroundColor.withOpacity(0.8),
+            border: Border.all(
+              color: AppTheme.primaryColor.withOpacity(0.2),
+              width: 1.5,
+            ),
+          ),
+          child: Icon(
+            icon,
+            color: AppTheme.secondaryColor,
+            size: size * 0.6,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget buildPlayPauseButton({
+    required bool isPlaying,
+    required VoidCallback onTap,
+    required double size,
+  }) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: InkWell(
+        onTap: onTap,
+        customBorder: const CircleBorder(),
+        child: Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                AppTheme.primaryColor.withOpacity(0.9),
+                AppTheme.secondaryColor.withOpacity(0.9),
+              ],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.primaryColor.withOpacity(0.3),
+                blurRadius: 8,
+                spreadRadius: 2,
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(size * 0.2),
+            child: Image.asset(
+              isPlaying ? AppAssets.pauseButton : AppAssets.playButton,
+              width: size * 0.6,
+              height: size * 0.6,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final isWidget = ResponsiveLayout.isWidget(context);
     final buttonSpacing = isWidget ? 12.0 : 24.0;
-    final controlsMargin = isWidget ? 10.0 : 20.0;
-    final sliderPadding = isWidget ? 10.0 : 15.0;
+    final maxWidth = ResponsiveLayout.getPlayerWidth(context) * 0.9;
 
-    Widget buildControlButton({
-      required IconData icon,
-      required VoidCallback onTap,
-      required double size,
-    }) {
-      return MouseRegion(
-        cursor: SystemMouseCursors.click,
-        child: TweenAnimationBuilder<double>(
-          duration: const Duration(milliseconds: 200),
-          tween: Tween<double>(begin: 1, end: 1),
-          builder: (context, scale, child) {
-            return Transform.scale(
-              scale: scale,
-              child: child,
-            );
-          },
-          child: InkWell(
-            onTap: onTap,
-            customBorder: const CircleBorder(),
-            child: Icon(
-              icon,
-              color: AppTheme.secondaryColor,
-              size: size,
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxWidth: maxWidth,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Progress Indicator and Time (moved up)
+          Container(
+            margin: EdgeInsets.symmetric(
+              horizontal: isWidget ? 8 : 16,
+              vertical: isWidget ? 8 : 12,
             ),
-          ),
-        ),
-      );
-    }
-
-    Widget buildPlayPauseButton({
-      required bool isPlaying,
-      required VoidCallback onTap,
-      required double size,
-    }) {
-      return MouseRegion(
-        cursor: SystemMouseCursors.click,
-        child: TweenAnimationBuilder<double>(
-          duration: const Duration(milliseconds: 200),
-          tween: Tween<double>(begin: 1, end: 1),
-          builder: (context, scale, child) {
-            return Transform.scale(
-              scale: scale,
-              child: child,
-            );
-          },
-          child: Container(
-            height: size,
-            width: size,
+            padding: EdgeInsets.all(isWidget ? 12 : 16),
             decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppTheme.primaryColor.withOpacity(0.1),
-              boxShadow: const [
-                BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 10,
-                  spreadRadius: 2,
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  AppTheme.backgroundColor.withOpacity(0.5),
+                  Colors.white.withOpacity(0.7),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: AppTheme.primaryColor.withOpacity(0.15),
+                width: 1.5,
+              ),
+            ),
+            child: Column(
+              children: [
+                SliderTheme(
+                  data: SliderThemeData(
+                    thumbColor: AppTheme.primaryColor,
+                    activeTrackColor: AppTheme.secondaryColor,
+                    inactiveTrackColor: AppTheme.backgroundColor,
+                    overlayColor: AppTheme.primaryColor.withOpacity(0.2),
+                    thumbShape: RoundSliderThumbShape(
+                      enabledThumbRadius: isWidget ? 6 : 8,
+                    ),
+                    overlayShape: RoundSliderOverlayShape(
+                      overlayRadius: isWidget ? 12 : 16,
+                    ),
+                    trackHeight: isWidget ? 3 : 4,
+                  ),
+                  child: Slider(
+                    value: position.inSeconds.toDouble(),
+                    max: duration.inSeconds.toDouble(),
+                    onChanged: (value) {
+                      audioPlayer.seek(Duration(seconds: value.toInt()));
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        _formatDuration(position),
+                        style: TextStyle(
+                          fontSize: isWidget ? 12 : 14,
+                          color: AppTheme.textColor.withOpacity(0.7),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Text(
+                        _formatDuration(duration),
+                        style: TextStyle(
+                          fontSize: isWidget ? 12 : 14,
+                          color: AppTheme.textColor.withOpacity(0.7),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
-            child: Material(
-              type: MaterialType.transparency,
-              child: InkWell(
-                onTap: onTap,
-                customBorder: const CircleBorder(),
-                child: Padding(
-                  padding: EdgeInsets.all(size * 0.2),
-                  child: Image.asset(
-                    isPlaying ? AppAssets.pauseButton : AppAssets.playButton,
-                    width: size * 0.6,
-                    height: size * 0.6,
-                  ),
-                ),
-              ),
-            ),
           ),
-        ),
-      );
-    }
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          margin: EdgeInsets.symmetric(horizontal: controlsMargin),
-          padding: EdgeInsets.symmetric(
-            vertical: sliderPadding,
-            horizontal: 5,
-          ),
-          decoration: BoxDecoration(
-            color: AppTheme.backgroundColor,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: AppTheme.primaryColor.withOpacity(0.3),
-              width: 2,
+          // Play Controls
+          Container(
+            margin: EdgeInsets.symmetric(vertical: isWidget ? 8 : 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                buildControlButton(
+                  icon: Icons.skip_previous_rounded,
+                  onTap: onBackward,
+                  size: isWidget ? 36 : 44,
+                ),
+                SizedBox(width: buttonSpacing),
+                buildPlayPauseButton(
+                  isPlaying: isPlaying,
+                  onTap: onPlayPause,
+                  size: isWidget ? 56 : 72,
+                ),
+                SizedBox(width: buttonSpacing),
+                buildControlButton(
+                  icon: Icons.skip_next_rounded,
+                  onTap: onForward,
+                  size: isWidget ? 36 : 44,
+                ),
+              ],
             ),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SliderTheme(
-                data: SliderThemeData(
-                  thumbColor: AppTheme.primaryColor,
-                  activeTrackColor: AppTheme.secondaryColor,
-                  inactiveTrackColor: Colors.white,
-                  overlayColor: AppTheme.primaryColor.withOpacity(0.2),
-                  thumbShape: RoundSliderThumbShape(
-                    enabledThumbRadius: isWidget ? 6 : 8,
-                  ),
-                  overlayShape: RoundSliderOverlayShape(
-                    overlayRadius: isWidget ? 12 : 16,
-                  ),
-                  trackHeight: isWidget ? 3 : 4,
-                ),
-                child: Slider(
-                  value: position.inSeconds.toDouble(),
-                  max: duration.inSeconds.toDouble(),
-                  onChanged: (value) {
-                    audioPlayer.seek(Duration(seconds: value.toInt()));
-                  },
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: isWidget ? 10 : 20,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      _formatDuration(position),
-                      style: TextStyle(fontSize: isWidget ? 10 : 12),
-                    ),
-                    Text(
-                      _formatDuration(duration),
-                      style: TextStyle(fontSize: isWidget ? 10 : 12),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        SizedBox(height: isWidget ? 10 : 20),
-        SizedBox(
-          height: isWidget ? 48 : 64,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              buildControlButton(
-                icon: Icons.skip_previous_rounded,
-                onTap: onBackward,
-                size: isWidget ? 32 : 40,
-              ),
-              SizedBox(width: buttonSpacing),
-              buildPlayPauseButton(
-                isPlaying: isPlaying,
-                onTap: onPlayPause,
-                size: isWidget ? 48 : 64,
-              ),
-              SizedBox(width: buttonSpacing),
-              buildControlButton(
-                icon: Icons.skip_next_rounded,
-                onTap: onForward,
-                size: isWidget ? 32 : 40,
-              ),
-            ],
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
