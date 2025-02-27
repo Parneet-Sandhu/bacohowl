@@ -8,10 +8,9 @@ import '../constants/assets.dart';
 import '../widgets/player_controls.dart';
 import '../widgets/drop_zone.dart';
 import 'dart:math';
-import 'dart:typed_data';
-import '../widgets/background_picker.dart';
 import '../widgets/settings_menu.dart';
 import '../utils/responsive_layout.dart';
+import '../widgets/bottom_info_box.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -416,79 +415,117 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         child: SafeArea(
           child: Stack(
             children: [
-              DropZone(
-                onDroppedFile: (file) async => await playAudio(file),
-                child: Center(
-                  child: Container(
-                    constraints: BoxConstraints(maxWidth: playerWidth),
-                    margin: const EdgeInsets.all(10),
-                    padding: playerPadding,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.9),
-                      borderRadius: BorderRadius.circular(playerRadius),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppTheme.primaryColor.withOpacity(0.3),
-                          blurRadius: isWidget ? 10 : 20,
-                          spreadRadius: isWidget ? 2 : 5,
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: isWidget ? 12 : 20,
-                            vertical: isWidget ? 8 : 10,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppTheme.backgroundColor,
-                            borderRadius: BorderRadius.circular(isWidget ? 15 : 20),
-                            border: Border.all(
-                              color: AppTheme.primaryColor.withOpacity(0.3),
-                              width: 2,
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isMobile ? 10 : 20,
+                  vertical: isMobile ? 5 : 10,
+                ),
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: DropZone(
+                        onDroppedFile: (file) async => await playAudio(file),
+                        child: SingleChildScrollView(
+                          child: Center(
+                            child: Container(
+                              constraints: BoxConstraints(maxWidth: playerWidth),
+                              margin: EdgeInsets.only(
+                                top: isMobile ? 5 : 10,
+                                bottom: isMobile ? 5 : 10,
+                              ),
+                              padding: playerPadding,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.95),
+                                borderRadius: BorderRadius.circular(playerRadius),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppTheme.primaryColor.withOpacity(0.3),
+                                    blurRadius: isWidget ? 15 : 30,
+                                    spreadRadius: isWidget ? 2 : 5,
+                                  ),
+                                  BoxShadow(
+                                    color: AppTheme.secondaryColor.withOpacity(0.2),
+                                    blurRadius: isWidget ? 10 : 20,
+                                    spreadRadius: isWidget ? 1 : 3,
+                                    offset: const Offset(0, 5),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: isWidget ? 12 : 20,
+                                      vertical: isWidget ? 8 : 10,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.backgroundColor,
+                                      borderRadius: BorderRadius.circular(isWidget ? 15 : 20),
+                                      border: Border.all(
+                                        color: AppTheme.primaryColor.withOpacity(0.3),
+                                        width: 2,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      currentSong ?? 'Select songs to play',
+                                      style: AppTheme.titleStyle.copyWith(
+                                        fontSize: ResponsiveLayout.getFontSize(context, 24),
+                                      ),
+                                      textAlign: TextAlign.center,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  _buildPlaylistView(), // Always include playlist view
+                                  const SizedBox(height: 10),
+                                  PlayerControls(
+                                    audioPlayer: _audioPlayer,
+                                    isPlaying: isPlaying,
+                                    duration: duration,
+                                    position: position,
+                                    onPlayPause: handlePlayPause,
+                                    onForward: handleForward,
+                                    onBackward: handleBackward,
+                                  ),
+                                  const SizedBox(height: 15),
+                                  _buildControls(isMobile),
+                                  const SizedBox(height: 10),
+                                ],
+                              ),
                             ),
                           ),
-                          child: Text(
-                            currentSong ?? 'Select songs to play',
-                            style: AppTheme.titleStyle.copyWith(
-                              fontSize: ResponsiveLayout.getFontSize(context, 24),
-                            ),
-                            textAlign: TextAlign.center,
-                            overflow: TextOverflow.ellipsis,
-                          ),
                         ),
-                        const SizedBox(height: 10),
-                        _buildPlaylistView(), // Always include playlist view
-                        const SizedBox(height: 10),
-                        PlayerControls(
-                          audioPlayer: _audioPlayer,
-                          isPlaying: isPlaying,
-                          duration: duration,
-                          position: position,
-                          onPlayPause: handlePlayPause,
-                          onForward: handleForward,
-                          onBackward: handleBackward,
-                        ),
-                        const SizedBox(height: 15),
-                        _buildControls(isMobile),
-                        const SizedBox(height: 10),
-                      ],
+                      ),
                     ),
-                  ),
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      margin: EdgeInsets.only(
+                        top: isMobile ? 5 : 10,
+                      ),
+                      child: BottomInfoBox(
+                        width: playerWidth,
+                        opacity: 0.95,
+                        elevation: isWidget ? 15 : 30,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               if (showSettings)
                 Positioned(
                   top: isMobile ? 60 : 100,
                   right: isMobile ? 10 : 20,
-                  child: SettingsMenu(
-                    currentBackground: currentBackground,
-                    onBackgroundChanged: _handleBackgroundChange,
-                    onCustomBackgroundPicked: _handleCustomBackground,
-                    autoPlay: autoPlay,
-                    onAutoPlayChanged: _handleAutoPlayChanged,
+                  child: AnimatedOpacity(
+                    duration: const Duration(milliseconds: 200),
+                    opacity: showSettings ? 1.0 : 0.0,
+                    child: SettingsMenu(
+                      currentBackground: currentBackground,
+                      onBackgroundChanged: _handleBackgroundChange,
+                      onCustomBackgroundPicked: _handleCustomBackground,
+                      autoPlay: autoPlay,
+                      onAutoPlayChanged: _handleAutoPlayChanged,
+                    ),
                   ),
                 ),
             ],

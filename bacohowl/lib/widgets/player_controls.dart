@@ -26,11 +26,89 @@ class PlayerControls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = ResponsiveLayout.isMobile(context);
     final isWidget = ResponsiveLayout.isWidget(context);
     final buttonSpacing = isWidget ? 12.0 : 24.0;
     final controlsMargin = isWidget ? 10.0 : 20.0;
     final sliderPadding = isWidget ? 10.0 : 15.0;
+
+    Widget buildControlButton({
+      required IconData icon,
+      required VoidCallback onTap,
+      required double size,
+    }) {
+      return MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: TweenAnimationBuilder<double>(
+          duration: const Duration(milliseconds: 200),
+          tween: Tween<double>(begin: 1, end: 1),
+          builder: (context, scale, child) {
+            return Transform.scale(
+              scale: scale,
+              child: child,
+            );
+          },
+          child: InkWell(
+            onTap: onTap,
+            customBorder: const CircleBorder(),
+            child: Icon(
+              icon,
+              color: AppTheme.secondaryColor,
+              size: size,
+            ),
+          ),
+        ),
+      );
+    }
+
+    Widget buildPlayPauseButton({
+      required bool isPlaying,
+      required VoidCallback onTap,
+      required double size,
+    }) {
+      return MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: TweenAnimationBuilder<double>(
+          duration: const Duration(milliseconds: 200),
+          tween: Tween<double>(begin: 1, end: 1),
+          builder: (context, scale, child) {
+            return Transform.scale(
+              scale: scale,
+              child: child,
+            );
+          },
+          child: Container(
+            height: size,
+            width: size,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppTheme.primaryColor.withOpacity(0.1),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 10,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+            child: Material(
+              type: MaterialType.transparency,
+              child: InkWell(
+                onTap: onTap,
+                customBorder: const CircleBorder(),
+                child: Padding(
+                  padding: EdgeInsets.all(size * 0.2),
+                  child: Image.asset(
+                    isPlaying ? AppAssets.pauseButton : AppAssets.playButton,
+                    width: size * 0.6,
+                    height: size * 0.6,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -97,51 +175,27 @@ class PlayerControls extends StatelessWidget {
         ),
         SizedBox(height: isWidget ? 10 : 20),
         SizedBox(
-          height: isWidget ? 48 : 56,
+          height: isWidget ? 48 : 64,
           child: Row(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              IconButton(
-                iconSize: isWidget ? 24 : 32,
-                padding: EdgeInsets.zero,
-                onPressed: onBackward,
-                icon: Icon(
-                  Icons.skip_previous_rounded,
-                  color: AppTheme.secondaryColor,
-                ),
+              buildControlButton(
+                icon: Icons.skip_previous_rounded,
+                onTap: onBackward,
+                size: isWidget ? 32 : 40,
               ),
               SizedBox(width: buttonSpacing),
-              Container(
-                height: isWidget ? 40 : 48,
-                width: isWidget ? 40 : 48,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppTheme.primaryColor.withOpacity(0.1),
-                ),
-                child: Material(
-                  type: MaterialType.transparency,
-                  child: InkWell(
-                    onTap: onPlayPause,
-                    customBorder: const CircleBorder(),
-                    child: Padding(
-                      padding: EdgeInsets.all(isWidget ? 8 : 12),
-                      child: Image.asset(
-                        isPlaying ? AppAssets.pauseButton : AppAssets.playButton,
-                      ),
-                    ),
-                  ),
-                ),
+              buildPlayPauseButton(
+                isPlaying: isPlaying,
+                onTap: onPlayPause,
+                size: isWidget ? 48 : 64,
               ),
               SizedBox(width: buttonSpacing),
-              IconButton(
-                iconSize: isWidget ? 24 : 32,
-                padding: EdgeInsets.zero,
-                onPressed: onForward,
-                icon: Icon(
-                  Icons.skip_next_rounded,
-                  color: AppTheme.secondaryColor,
-                ),
+              buildControlButton(
+                icon: Icons.skip_next_rounded,
+                onTap: onForward,
+                size: isWidget ? 32 : 40,
               ),
             ],
           ),

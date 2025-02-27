@@ -46,9 +46,9 @@ class _BackgroundPickerState extends State<BackgroundPicker> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: AppTheme.primaryColor.withOpacity(0.2),
+            color: Colors.black12,
             blurRadius: 10,
             spreadRadius: 2,
           ),
