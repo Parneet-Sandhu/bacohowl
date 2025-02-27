@@ -28,7 +28,7 @@ class BottomInfoBox extends StatelessWidget {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Invite link copied to clipboard!'),
-        backgroundColor: AppTheme.secondaryColor,
+        backgroundColor: Color.fromARGB(255, 135, 150, 184),
       ),
     );
   }
@@ -40,24 +40,28 @@ class BottomInfoBox extends StatelessWidget {
     
     return Container(
       width: width,
-      padding: EdgeInsets.all(isWidget ? 12 : 16),
+      padding: EdgeInsets.all(isWidget ? 10 : 14),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(opacity),
+        // New color scheme
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            const Color(0xFFB5838D), // Soft rose
+            const Color(0xFF6D6875), // Muted purple
+          ],
+        ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: AppTheme.primaryColor.withOpacity(0.3),
+          color: Colors.white.withOpacity(0.2),
+          width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primaryColor.withOpacity(0.2),
+            color: const Color(0xFFB5838D).withOpacity(0.2),
             blurRadius: elevation / 2,
-            spreadRadius: elevation / 10,
-          ),
-          BoxShadow(
-            color: AppTheme.secondaryColor.withOpacity(0.1),
-            blurRadius: elevation / 3,
             spreadRadius: elevation / 15,
-            offset: const Offset(0, 5),
+            offset: const Offset(0, -2),
           ),
         ],
       ),
@@ -69,24 +73,32 @@ class BottomInfoBox extends StatelessWidget {
             label: 'Profile',
             onTap: () {},
             isSmall: isMobile,
+            iconColor: Colors.white,
+            textColor: Colors.white,
           ),
           _buildAnimatedButton(
             icon: Icons.share,
             label: 'Share',
             onTap: _handleShare,
             isSmall: isMobile,
+            iconColor: Colors.white,
+            textColor: Colors.white,
           ),
           _buildAnimatedButton(
             icon: Icons.group_add,
             label: 'Invite',
             onTap: () => _copyInviteLink(context),
             isSmall: isMobile,
+            iconColor: Colors.white,
+            textColor: Colors.white,
           ),
           _buildAnimatedButton(
             icon: Icons.favorite,
             label: 'Like',
             onTap: () {},
             isSmall: isMobile,
+            iconColor: Colors.white,
+            textColor: Colors.white,
           ),
         ],
       ),
@@ -98,6 +110,8 @@ class BottomInfoBox extends StatelessWidget {
     required String label,
     required VoidCallback onTap,
     required bool isSmall,
+    required Color iconColor,
+    required Color textColor,
   }) {
     return TweenAnimationBuilder<double>(
       tween: Tween<double>(begin: 1, end: 1),
@@ -121,7 +135,7 @@ class BottomInfoBox extends StatelessWidget {
             children: [
               Icon(
                 icon,
-                color: AppTheme.secondaryColor,
+                color: iconColor,
                 size: isSmall ? 16 : 20,
               ),
               const SizedBox(height: 4),
@@ -129,7 +143,7 @@ class BottomInfoBox extends StatelessWidget {
                 label,
                 style: AppTheme.bodyStyle.copyWith(
                   fontSize: isSmall ? 10 : 12,
-                  color: AppTheme.secondaryColor,
+                  color: textColor,
                 ),
               ),
             ],
