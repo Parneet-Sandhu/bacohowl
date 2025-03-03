@@ -9,9 +9,9 @@ class ResponsiveLayout {
 
   static double getPlayerWidth(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
-    if (isWidget(context)) return width - 20;
-    if (isMobile(context)) return width - 40;
-    return 400;
+    if (isWidget(context)) return width - 30; // Decreased width
+    if (isMobile(context)) return width - 60; // Decreased width
+    return 350; // Decreased max width from 400 to 350
   }
 
   static EdgeInsets getPlayerPadding(BuildContext context) {

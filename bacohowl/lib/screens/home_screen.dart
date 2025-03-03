@@ -10,8 +10,6 @@ import '../widgets/drop_zone.dart';
 import 'dart:math';
 import '../widgets/settings_menu.dart';
 import '../utils/responsive_layout.dart';
-import '../widgets/bottom_info_box.dart';
-import '../widgets/story_row.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -34,23 +32,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   String currentBackground = AppAssets.defaultBackground;
   bool showSettings = false;
   bool autoPlay = true;  // Add this property
-
-  // Add this property for demo stories
-  final List<Story> stories = [
-    Story(
-      username: 'Sophie',
-      imageUrl: 'https://i.pravatar.cc/150?img=1',
-      hasStory: true,
-      currentSong: 'Howl\'s Moving Castle Theme',
-    ),
-    Story(
-      username: 'Howl',
-      imageUrl: 'https://i.pravatar.cc/150?img=2',
-      hasStory: true,
-      currentSong: 'Merry Go Round of Life',
-    ),
-    // Add more demo stories as needed
-  ];
 
   @override
   void initState() {
@@ -296,14 +277,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     setState(() => autoPlay = value);
   }
 
-  void _handleAddStory() {
-    // Implement story addition logic
-  }
-
-  void _handleTapStory(Story story) {
-    // Implement story view logic
-  }
-
   ImageProvider _getBackgroundImage() {
     if (currentBackground.startsWith('assets/')) {
       return AssetImage(currentBackground);
@@ -413,53 +386,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildStoriesBox(bool isMobile, double width) {
-    return Container(
-      width: width,
-      margin: EdgeInsets.symmetric(vertical: isMobile ? 5 : 10),
-      padding: EdgeInsets.all(isMobile ? 12 : 16),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.95),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: AppTheme.primaryColor.withOpacity(0.3),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.primaryColor.withOpacity(0.2),
-            blurRadius: 15,
-            spreadRadius: 2,
-          ),
-          BoxShadow(
-            color: AppTheme.secondaryColor.withOpacity(0.1),
-            blurRadius: 10,
-            spreadRadius: 1,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Stories',
-            style: AppTheme.titleStyle.copyWith(
-              fontSize: isMobile ? 18 : 20,
-              color: AppTheme.primaryColor,
-            ),
-          ),
-          const SizedBox(height: 8),
-          StoryRow(
-            stories: stories,
-            onAddStory: _handleAddStory,
-            onTapStory: _handleTapStory,
-            currentSong: currentSong,
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final isWidget = ResponsiveLayout.isWidget(context);
@@ -474,133 +400,119 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             fit: BoxFit.cover,
           ),
         ),
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                AppTheme.primaryColor.withOpacity(0.3),
-                AppTheme.secondaryColor.withOpacity(0.3),
-              ],
-            ),
-          ),
-          child: SafeArea(
-            child: DropZone(
-              onDroppedFile: (file) async => await playAudio(file),
-              child: Column(
-                children: [
-                  // Main Scrollable Content
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: EdgeInsets.only(
-                        left: isMobile ? 10 : 20,
-                        right: isMobile ? 10 : 20,
-                        top: isMobile ? 5 : 10,
-                        bottom: 100, // Add padding for bottom info box
-                      ),
-                      child: Column(
-                        children: [
-                          // Stories Box
-                          Container(
-                            constraints: BoxConstraints(maxWidth: playerWidth),
-                            margin: EdgeInsets.only(bottom: isMobile ? 15 : 25),
-                            child: _buildStoriesBox(isMobile, playerWidth),
+        child: SafeArea(
+          child: DropZone(
+            onDroppedFile: (file) async => await playAudio(file),
+            child: Center(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isMobile ? 15 : 30,
+                  vertical: isMobile ? 20 : 30,
+                ),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                  margin: EdgeInsets.only(
+                    // Changed from 0.15 to 0.05 to position it closer to the top
+                    top: showSettings || showPlaylist ? 0 : MediaQuery.of(context).size.height * 0.05,
+                  ),
+                  child: Container(
+                    constraints: BoxConstraints(maxWidth: playerWidth),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Main Player Container
+                        Container(
+                          padding: ResponsiveLayout.getPlayerPadding(context),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.97),
+                            borderRadius: BorderRadius.circular(ResponsiveLayout.getPlayerRadius(context)),
+                            border: Border.all(
+                              color: AppTheme.primaryColor.withOpacity(0.2),
+                              width: 1.5,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFFB5838D).withOpacity(0.15),
+                                blurRadius: 25,
+                                spreadRadius: 2,
+                              ),
+                              BoxShadow(
+                                color: AppTheme.accentColor.withOpacity(0.1),
+                                blurRadius: 20,
+                                spreadRadius: 1,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
                           ),
-
-                          // Player Container and Settings
-                          Container(
-                            constraints: BoxConstraints(maxWidth: playerWidth),
-                            margin: EdgeInsets.only(bottom: isMobile ? 10 : 20),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                // Main Player Container (Updated)
-                                Container(
-                                  padding: ResponsiveLayout.getPlayerPadding(context),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.97),
-                                    borderRadius: BorderRadius.circular(ResponsiveLayout.getPlayerRadius(context)),
-                                    border: Border.all(
-                                      color: AppTheme.primaryColor.withOpacity(0.2),
-                                      width: 1.5,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: const Color(0xFFB5838D).withOpacity(0.15),
-                                        blurRadius: 25,
-                                        spreadRadius: 2,
-                                      ),
-                                      BoxShadow(
-                                        color: AppTheme.accentColor.withOpacity(0.1),
-                                        blurRadius: 20,
-                                        spreadRadius: 1,
-                                        offset: const Offset(0, 8),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      // Song Title Container (Updated)
-                                      Container(
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: isWidget ? 12 : 20,
-                                          vertical: isWidget ? 12 : 16,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          gradient: LinearGradient(
-                                            begin: Alignment.topLeft,
-                                            end: Alignment.bottomRight,
-                                            colors: [
-                                              AppTheme.backgroundColor,
-                                              Colors.white.withOpacity(0.95),
-                                            ],
-                                          ),
-                                          borderRadius: BorderRadius.circular(isWidget ? 15 : 20),
-                                          border: Border.all(
-                                            color: AppTheme.primaryColor.withOpacity(0.15),
-                                            width: 1.5,
-                                          ),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: AppTheme.primaryColor.withOpacity(0.1),
-                                              blurRadius: 10,
-                                              spreadRadius: 1,
-                                              offset: const Offset(0, 2),
-                                            ),
-                                          ],
-                                        ),
-                                        child: Text(
-                                          currentSong ?? 'Select songs to play',
-                                          style: AppTheme.titleStyle.copyWith(
-                                            fontSize: ResponsiveLayout.getFontSize(context, 24),
-                                            color: AppTheme.textColor.withOpacity(0.8),
-                                          ),
-                                          textAlign: TextAlign.center,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 25),
-                                      PlayerControls(
-                                        audioPlayer: _audioPlayer,
-                                        isPlaying: isPlaying,
-                                        duration: duration,
-                                        position: position,
-                                        onPlayPause: handlePlayPause,
-                                        onForward: handleForward,
-                                        onBackward: handleBackward,
-                                        currentSong: currentSong, // Add this
-                                      ),
-                                      const SizedBox(height: 20),
-                                      _buildControls(isMobile),
-                                    ],
-                                  ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Song Title Container
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: isWidget ? 12 : 20,
+                                  vertical: isWidget ? 12 : 16,
                                 ),
-                                
-                                // Settings Menu - Moved here
-                                if (showSettings)
-                                  Padding(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      AppTheme.backgroundColor,
+                                      Colors.white.withOpacity(0.95),
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(isWidget ? 15 : 20),
+                                  border: Border.all(
+                                    color: AppTheme.primaryColor.withOpacity(0.15),
+                                    width: 1.5,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppTheme.primaryColor.withOpacity(0.1),
+                                      blurRadius: 10,
+                                      spreadRadius: 1,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Text(
+                                  currentSong ?? 'Select songs to play',
+                                  style: AppTheme.titleStyle.copyWith(
+                                    fontSize: ResponsiveLayout.getFontSize(context, 24),
+                                    color: AppTheme.textColor.withOpacity(0.8),
+                                  ),
+                                  textAlign: TextAlign.center,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(height: 25),
+                              PlayerControls(
+                                audioPlayer: _audioPlayer,
+                                isPlaying: isPlaying,
+                                duration: duration,
+                                position: position,
+                                onPlayPause: handlePlayPause,
+                                onForward: handleForward,
+                                onBackward: handleBackward,
+                                currentSong: currentSong, // Add this
+                              ),
+                              const SizedBox(height: 20),
+                              _buildControls(isMobile),
+                            ],
+                          ),
+                        ),
+                        
+                        // Settings Menu with animation
+                        AnimatedSlide(
+                          duration: const Duration(milliseconds: 300),
+                          offset: Offset(0, showSettings ? 0 : 0.5),
+                          child: AnimatedOpacity(
+                            duration: const Duration(milliseconds: 300),
+                            opacity: showSettings ? 1 : 0,
+                            child: showSettings
+                                ? Padding(
                                     padding: const EdgeInsets.only(top: 16),
                                     child: SettingsMenu(
                                       currentBackground: currentBackground,
@@ -609,37 +521,30 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                       autoPlay: autoPlay,
                                       onAutoPlayChanged: _handleAutoPlayChanged,
                                     ),
-                                  ),
-                                
-                                // Playlist when shown
-                                if (showPlaylist) 
-                                  Padding(
+                                  )
+                                : const SizedBox.shrink(),
+                          ),
+                        ),
+                        
+                        // Playlist with animation
+                        AnimatedSlide(
+                          duration: const Duration(milliseconds: 300),
+                          offset: Offset(0, showPlaylist ? 0 : 0.5),
+                          child: AnimatedOpacity(
+                            duration: const Duration(milliseconds: 300),
+                            opacity: showPlaylist ? 1 : 0,
+                            child: showPlaylist
+                                ? Padding(
                                     padding: const EdgeInsets.only(top: 10),
                                     child: _buildPlaylistView(),
-                                  ),
-                              ],
-                            ),
+                                  )
+                                : const SizedBox.shrink(),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
-
-                  // Fixed Bottom Info Box
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: isMobile ? 10 : 20,
-                      vertical: isMobile ? 8 : 12,
-                    ),
-                    child: Center(
-                      child: BottomInfoBox(
-                        width: playerWidth,
-                        opacity: 0.95,
-                        elevation: isWidget ? 15 : 30,
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
